@@ -97,9 +97,12 @@ abstract class AbstractConfig
 			switch ($sType)
 			{
 				default:
-				case 'float':
 				case 'string':
 					$this->aData[$sSectionKey][$sParamKey][0] = (string) $mParamValue;
+					break;
+				case 'float':
+				case 'double':
+					$this->aData[$sSectionKey][$sParamKey][0] = (float) $mParamValue;
 					break;
 				case 'int':
 				case 'integer':
@@ -298,7 +301,7 @@ abstract class AbstractConfig
 						{
 							$sDesk = \str_replace("\r", '', $mParamValue[1]);
 							$aDesk = \explode("\n", $sDesk);
-							$aDesk = \array_map(function (&$sLine) {
+							$aDesk = \array_map(function ($sLine) {
 								return '; '.$sLine;
 							}, $aDesk);
 
@@ -321,6 +324,7 @@ abstract class AbstractConfig
 								break;
 							case 'int':
 							case 'integer':
+							case 'double':
 								$sValue = $mParamValue[0];
 								break;
 							case 'bool':

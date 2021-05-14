@@ -1154,8 +1154,7 @@ class Actions
 				$sPdo = empty($sPdo) ? '~' : $sPdo;
 
 				$this->oLogger->Write('['.
-					'Suhosin:'.(\extension_loaded('suhosin') || @\ini_get('suhosin.get.max_value_length') ? 'on' : 'off').
-					'][APC:'.(\MailSo\Base\Utils::FunctionExistsAndEnabled('apc_fetch') ? 'on' : 'off').
+					'APC:'.(\MailSo\Base\Utils::FunctionExistsAndEnabled('apc_fetch') ? 'on' : 'off').
 					'][MB:'.(\MailSo\Base\Utils::FunctionExistsAndEnabled('mb_convert_encoding') ? 'on' : 'off').
 					'][PDO:'.$sPdo.
 					(\RainLoop\Utils::IsOwnCloud() ? '][cloud:true' : '').
@@ -1845,7 +1844,7 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 		$aResult['AllowLanguagesOnSettings'] = (bool) $oConfig->Get('webmail', 'allow_languages_on_settings', true);
 		$aResult['AllowLanguagesOnLogin'] = (bool) $oConfig->Get('login', 'allow_languages_on_login', true);
 		$aResult['AttachmentLimit'] = ((int) $oConfig->Get('webmail', 'attachment_size_limit', 10)) * 1024 * 1024;
-		$aResult['SignMe'] = (string) $oConfig->Get('login', 'sign_me_auto', \RainLoop\Enumerations\SignMeType::DEFAILT_OFF);
+		$aResult['SignMe'] = (string) $oConfig->Get('login', 'sign_me_auto', \RainLoop\Enumerations\SignMeType::DEFAULT_OFF);
 		$aResult['UseLocalProxyForExternalImages'] = (bool) $oConfig->Get('labs', 'use_local_proxy_for_external_images', false);
 
 		// user
@@ -1997,7 +1996,7 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 		// Mobile override
 		if ($bMobile)
 		{
-			$aResult['Layout'] = \RainLoop\Enumerations\Layout::NO_PREVIW;
+			$aResult['Layout'] = \RainLoop\Enumerations\Layout::NO_PREVIEW;
 
 			$aResult['SoundNotification'] = false;
 			$aResult['DesktopNotifications'] = false;
@@ -5086,7 +5085,7 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 		});
 
 		$this->setSettingsFromParams($oSettings, 'Layout', 'int', function ($iValue) {
-			return (int) (\in_array((int) $iValue, array(\RainLoop\Enumerations\Layout::NO_PREVIW,
+			return (int) (\in_array((int) $iValue, array(\RainLoop\Enumerations\Layout::NO_PREVIEW,
 				\RainLoop\Enumerations\Layout::SIDE_PREVIEW, \RainLoop\Enumerations\Layout::BOTTOM_PREVIEW)) ?
 					$iValue : \RainLoop\Enumerations\Layout::SIDE_PREVIEW);
 		});
@@ -5719,11 +5718,9 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 		$aFlagsFilteredUids = array();
 		if (0 < strlen($sFlagsUids))
 		{
-			$aFlagsUids = explode(',', $sFlagsUids);
-			$aFlagsFilteredUids = array_filter($aFlagsUids, function (&$sUid) {
-				$sUid = (int) trim($sUid);
-				return 0 < (int) trim($sUid);
-			});
+			$aFlagsUids = \explode(',', $sFlagsUids);
+			$aFlagsUids = \array_map('intval', $aFlagsUids);
+			$aFlagsFilteredUids = \array_filter($aFlagsUids);
 		}
 
 		$this->initMailClientConnection();
@@ -7068,11 +7065,8 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 	{
 		$oAccount = $this->getAccountFromToken();
 		$aUids = \explode(',', (string) $this->GetActionParam('Uids', ''));
-
-		$aFilteredUids = \array_filter($aUids, function (&$mUid) {
-			$mUid = (int) \trim($mUid);
-			return 0 < $mUid;
-		});
+		$aUids = \array_map('intval', $aUids);
+		$aFilteredUids = \array_filter($aUids);
 
 		$bResult = false;
 		if (0 < \count($aFilteredUids) && $this->AddressBookProvider($oAccount)->IsActive())
@@ -7236,10 +7230,8 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 		$sFolder = $this->GetActionParam('Folder', '');
 		$bSetAction = '1' === (string) $this->GetActionParam('SetAction', '0');
 		$aUids = \explode(',', (string) $this->GetActionParam('Uids', ''));
-		$aFilteredUids = \array_filter($aUids, function (&$sUid) {
-			$sUid = (int) \trim($sUid);
-			return 0 < $sUid;
-		});
+		$aUids = \array_map('intval', $aUids);
+		$aFilteredUids = \array_filter($aUids);
 
 		try
 		{
@@ -7357,11 +7349,8 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 
 		$sFolder = $this->GetActionParam('Folder', '');
 		$aUids = \explode(',', (string) $this->GetActionParam('Uids', ''));
-
-		$aFilteredUids = \array_filter($aUids, function (&$sUid) {
-			$sUid = (int) \trim($sUid);
-			return 0 < $sUid;
-		});
+		$aUids = \array_map('intval', $aUids);
+		$aFilteredUids = \array_filter($aUids);
 
 		try
 		{
@@ -7410,13 +7399,10 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 
 		$sFromFolder = $this->GetActionParam('FromFolder', '');
 		$sToFolder = $this->GetActionParam('ToFolder', '');
-		$aUids = \explode(',', (string) $this->GetActionParam('Uids', ''));
 		$bMarkAsRead = '1' === (string) $this->GetActionParam('MarkAsRead', '0');
-
-		$aFilteredUids = \array_filter($aUids, function (&$mUid) {
-			$mUid = (int) \trim($mUid);
-			return 0 < $mUid;
-		});
+		$aUids = \explode(',', (string) $this->GetActionParam('Uids', ''));
+		$aUids = \array_map('intval', $aUids);
+		$aFilteredUids = \array_filter($aUids);
 
 		if ($bMarkAsRead)
 		{
@@ -7480,11 +7466,8 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 		$sFromFolder = $this->GetActionParam('FromFolder', '');
 		$sToFolder = $this->GetActionParam('ToFolder', '');
 		$aUids = \explode(',', (string) $this->GetActionParam('Uids', ''));
-
-		$aFilteredUids = \array_filter($aUids, function (&$mUid) {
-			$mUid = (int) \trim($mUid);
-			return 0 < $mUid;
-		});
+		$aUids = \array_map('intval', $aUids);
+		$aFilteredUids = \array_filter($aUids);
 
 		try
 		{
@@ -8463,7 +8446,7 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 
 		$sResultHash = '';
 
-		$mResult = $this->MailClient()->MessageMimeStream(function($rResource, $sContentType, $sFileName, $sMimeIndex = '')
+		$mResult = $this->MailClient()->MessageMimeStream(function ($rResource, $sContentType, $sFileName, $sMimeIndex = '')
 			use ($oAccount, $oFileProvider, $sFileNameIn, $sContentTypeIn, &$sResultHash) {
 
 				unset($sContentType, $sFileName, $sMimeIndex);
@@ -9158,6 +9141,37 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 
 	/**
 	 * @param string $sLanguage
+	 * @param array $aLang
+	 *
+	 * @return string
+	 */
+	public function normalizeLanguage($sLanguage, array $aLang)
+	{
+		if (\in_array($sLanguage, array('ca', 'eu')))
+		{
+			return $sLanguage;
+		}
+
+		$aHelper = array('en' => 'en_us', 'ar' => 'ar_sa', 'cs' => 'cs_cz', 'no' => 'nb_no', 'ua' => 'uk_ua',
+			'cn' => 'zh_cn', 'zh' => 'zh_cn', 'tw' => 'zh_tw', 'fa' => 'fa_ir');
+
+		$sLanguage = isset($aHelper[$sLanguage]) ? $aHelper[$sLanguage] : $sLanguage;
+		$sLanguage = \strtolower(\str_replace('-', '_', $sLanguage));
+
+		if (2 === strlen($sLanguage))
+		{
+			$sLanguage = $sLanguage.'_'.$sLanguage;
+		}
+
+		$sLanguage = \preg_replace_callback('/_([a-zA-Z0-9]{2})$/', function ($aData) {
+			return \strtoupper($aData[0]);
+		}, $sLanguage);
+
+		return $sLanguage;
+	}
+
+	/**
+	 * @param string $sLanguage
 	 * @param string  $sDefault = ''
 	 * @param bool $bAdmin = false
 	 * @param bool $bAllowEmptyResult = false
@@ -9171,31 +9185,8 @@ NewThemeLink IncludeCss LoadingDescriptionEsc LangLink IncludeBackground Plugins
 
 		if (\is_array($aLang))
 		{
-			$aHelper = array('en' => 'en_us', 'ar' => 'ar_sa', 'cs' => 'cs_cz', 'no' => 'nb_no', 'ua' => 'uk_ua',
-				'cn' => 'zh_cn', 'zh' => 'zh_cn', 'tw' => 'zh_tw', 'fa' => 'fa_ir');
-
-			$sLanguage = isset($aHelper[$sLanguage]) ? $aHelper[$sLanguage] : $sLanguage;
-			$sDefault = isset($aHelper[$sDefault]) ? $aHelper[$sDefault] : $sDefault;
-
-			$sLanguage = \strtolower(\str_replace('-', '_', $sLanguage));
-			if (2 === strlen($sLanguage))
-			{
-				$sLanguage = $sLanguage.'_'.$sLanguage;
-			}
-
-			$sDefault = \strtolower(\str_replace('-', '_', $sDefault));
-			if (2 === strlen($sDefault))
-			{
-				$sDefault = $sDefault.'_'.$sDefault;
-			}
-
-			$sLanguage = \preg_replace_callback('/_([a-zA-Z0-9]{2})$/', function ($aData) {
-				return \strtoupper($aData[0]);
-			}, $sLanguage);
-
-			$sDefault = \preg_replace_callback('/_([a-zA-Z0-9]{2})$/', function ($aData) {
-				return \strtoupper($aData[0]);
-			}, $sDefault);
+			$sLanguage = $this->normalizeLanguage($sLanguage, $aLang);
+			$sDefault = $this->normalizeLanguage($sDefault, $aLang);
 
 			if (\in_array($sLanguage, $aLang))
 			{
